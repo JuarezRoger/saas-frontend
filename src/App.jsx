@@ -2,51 +2,105 @@ import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+// LA VARIABLE MÁGICA: Cambia esto cuando vayas a subir a Vercel
+// const API_URL = 'http://127.0.0.1:8000'; 
+const API_URL = 'https://atomsaas-api.onrender.com';
+
 function App() {
+  // ESTADOS DE LOGIN Y REGISTRO
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [errorLogin, setErrorLogin] = useState('');
+  
+  // NUEVO: Estados para el registro
+  const [vistaRegistro, setVistaRegistro] = useState(false);
+  const [regUsername, setRegUsername] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regCompania, setRegCompania] = useState('');
+  const [errorRegistro, setErrorRegistro] = useState('');
 
+  // ESTADOS DEL SAAS
   const [clientes, setClientes] = useState([]);
   const [servicios, setServicios] = useState([]);
   const [cotizacionesGuardadas, setCotizacionesGuardadas] = useState([]);
   const [cargando, setCargando] = useState(false);
-
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevoEmail, setNuevoEmail] = useState('');
   const [creando, setCreando] = useState(false);
-
   const [clienteSeleccionado, setClienteSeleccionado] = useState('');
   const [servicioSeleccionado, setServicioSeleccionado] = useState('');
   const [cantidad, setCantidad] = useState(1);
   const [itemsCotizacion, setItemsCotizacion] = useState([]);
   const [guardandoCotizacion, setGuardandoCotizacion] = useState(false);
 
+  // ==========================================
+  // FUNCIONES DE AUTENTICACIÓN
+  // ==========================================
+
   const manejarLogin = async (e) => {
     e.preventDefault();
     try {
-      const respuesta = await fetch('https://atomsaas-api.onrender.com/api/token/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+      const respuesta = await fetch(`${API_URL}/api/token/`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ username, password }) 
+      });
       if (respuesta.ok) {
-        const datos = await respuesta.json(); setToken(datos.access); localStorage.setItem('token', datos.access); setErrorLogin('');
+        const datos = await respuesta.json(); 
+        setToken(datos.access); 
+        localStorage.setItem('token', datos.access); 
+        setErrorLogin('');
       } else { setErrorLogin('Usuario o contraseña incorrectos.'); }
-    } catch (error) { setErrorLogin('No se pudo conectar.'); }
+    } catch (error) { setErrorLogin('No se pudo conectar al servidor.'); }
+  };
+
+  const manejarRegistro = async (e) => {
+    e.preventDefault();
+    setErrorRegistro('');
+    try {
+      const respuesta = await fetch(`${API_URL}/api/registro/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: regUsername,
+          password: regPassword,
+          email: regEmail,
+          nombre_compania: regCompania
+        })
+      });
+      const datos = await respuesta.json();
+      if (respuesta.ok) {
+        alert('¡Agencia creada con éxito! Ahora puedes iniciar sesión.');
+        setVistaRegistro(false); // Volvemos a la pantalla de login
+        setUsername(regUsername); // Pre-llenamos el usuario por comodidad
+      } else {
+        setErrorRegistro(datos.error || 'Error al crear la cuenta.');
+      }
+    } catch (error) {
+      setErrorRegistro('Error conectando al servidor.');
+    }
   };
 
   const cerrarSesion = () => { setToken(null); localStorage.removeItem('token'); setClientes([]); setServicios([]); setCotizacionesGuardadas([]); };
 
+  // ==========================================
+  // CARGA DE DATOS Y LÓGICA DEL SAAS
+  // ==========================================
+
   useEffect(() => {
     if (token) {
       setCargando(true);
-      fetch('https://atomsaas-api.onrender.com/api/clientes/', { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch(`${API_URL}/api/clientes/`, { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => { if (!res.ok) throw new Error("Token"); return res.json(); })
         .then(datos => setClientes(datos)).catch(() => cerrarSesion());
 
-      fetch('https://atomsaas-api.onrender.com/api/servicios/', { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch(`${API_URL}/api/servicios/`, { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => { if (!res.ok) throw new Error("Token"); return res.json(); })
         .then(datos => setServicios(datos)).catch(() => cerrarSesion());
 
-      fetch('https://atomsaas-api.onrender.com/api/cotizaciones/', { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch(`${API_URL}/api/cotizaciones/`, { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => { if (!res.ok) throw new Error("Token"); return res.json(); })
         .then(datos => { setCotizacionesGuardadas(datos); setCargando(false); }).catch(() => cerrarSesion());
     }
@@ -55,7 +109,7 @@ function App() {
   const crearCliente = async (e) => {
     e.preventDefault(); setCreando(true);
     try {
-      const respuesta = await fetch('https://atomsaas-api.onrender.com/api/clientes/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ nombre_empresa: nuevoNombre, email: nuevoEmail }) });
+      const respuesta = await fetch(`${API_URL}/api/clientes/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ nombre_empresa: nuevoNombre, email: nuevoEmail }) });
       if (respuesta.ok) { const clienteCreado = await respuesta.json(); setClientes([...clientes, clienteCreado]); setNuevoNombre(''); setNuevoEmail(''); }
     } catch (error) { console.error(error); } finally { setCreando(false); }
   };
@@ -75,7 +129,7 @@ function App() {
     setGuardandoCotizacion(true);
     const paqueteDatos = { cliente: parseInt(clienteSeleccionado), detalles: itemsCotizacion.map(item => ({ servicio: item.servicio_id, cantidad: item.cantidad, precio_unitario: item.precio })) };
     try {
-      const respuesta = await fetch('https://atomsaas-api.onrender.com/api/cotizaciones/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(paqueteDatos) });
+      const respuesta = await fetch(`${API_URL}/api/cotizaciones/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(paqueteDatos) });
       if (respuesta.ok) {
         const cotizacionGuardada = await respuesta.json();
         alert(`¡Éxito! Cotización guardada.`);
@@ -91,7 +145,6 @@ function App() {
     const doc = new jsPDF();
     const nombreCliente = obtenerNombreCliente(cotizacion.cliente);
 
-    // 1. LOGO Y DATOS DE TU EMPRESA (Alineados a la derecha)
     const logo = new Image();
     logo.src = '/logo.png'; 
     doc.addImage(logo, 'PNG', 14, 10, 35, 12); 
@@ -102,7 +155,6 @@ function App() {
     doc.text("Edificio Corporativo, Piso 4", 195, 20, { align: "right" });
     doc.text("hola@atomsaas.com | +504 9999-0000", 195, 25, { align: "right" });
 
-    // 2. TÍTULO Y DATOS DEL CLIENTE
     doc.setFontSize(20);
     doc.setTextColor(15, 23, 42); 
     doc.text("COTIZACIÓN DE SERVICIOS", 14, 40); 
@@ -117,7 +169,6 @@ function App() {
     doc.text(nombreCliente, 14, 72); 
     doc.setFont("helvetica", "normal");
 
-    // 3. TABLA DE SERVICIOS
     let subtotalGeneral = 0;
     const datosTabla = cotizacion.detalles.map((detalle, index) => {
       const servicioObj = servicios.find(s => s.id === detalle.servicio);
@@ -126,60 +177,41 @@ function App() {
       const subtotalFila = precioUnitario * detalle.cantidad;
       subtotalGeneral += subtotalFila;
       
-      return [
-        index + 1, 
-        nombreServicio, 
-        `$ ${precioUnitario.toLocaleString('en-US', {minimumFractionDigits: 2})}`, 
-        detalle.cantidad, 
-        `$ ${subtotalFila.toLocaleString('en-US', {minimumFractionDigits: 2})}`
-      ];
+      return [ index + 1, nombreServicio, `$ ${precioUnitario.toLocaleString('en-US', {minimumFractionDigits: 2})}`, detalle.cantidad, `$ ${subtotalFila.toLocaleString('en-US', {minimumFractionDigits: 2})}` ];
     });
-
-    // 3. TABLA DE SERVICIOS
-    // ... (El mapeo de 'datosTabla' arriba de esto se queda exactamente igual) ...
 
     autoTable(doc, {
       startY: 85, 
       head: [['#', 'Descripción del Servicio', 'Precio Unit.', 'Cant.', 'Subtotal']],
       body: datosTabla,
-      theme: 'striped', 
-      // Cabecera oscura profesional
+      theme: 'striped',
       headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], halign: 'center' }, 
-      
-      // --- CORRECCIÓN DE ALINEACIÓN MAESTRA ---
       columnStyles: {
-        0: { cellWidth: 10, halign: 'center' }, // El número de ítem al centro
-        1: { halign: 'left' },                  // El texto a la izquierda
-        2: { halign: 'right' },                 // El dinero a la derecha
-        3: { halign: 'center' },                // La cantidad al centro
-        4: { halign: 'right', fontStyle: 'bold' } // El total a la derecha y en negrita
+        0: { cellWidth: 10, halign: 'center' }, 
+        1: { halign: 'left' }, 
+        2: { halign: 'right' }, 
+        3: { halign: 'center' }, 
+        4: { halign: 'right', fontStyle: 'bold' } 
       }
     });
 
-    // 4. CÁLCULOS FINANCIEROS (Alineación perfecta y tamaños ajustados)
     const finalY = doc.lastAutoTable.finalY || 85;
     const impuesto = subtotalGeneral * 0.15; 
     const totalFinal = subtotalGeneral + impuesto;
 
-    doc.setFontSize(10); // Redujimos el tamaño
+    doc.setFontSize(10);
     doc.setTextColor(75, 85, 99);
-    
-    // Alineamos ambos a la derecha. 
-    // Los textos topan en la coordenada 165, los montos topan en la 196 (borde de la tabla)
     doc.text(`Subtotal:`, 165, finalY + 10, { align: "right" }); 
     doc.text(`$ ${subtotalGeneral.toLocaleString('en-US', {minimumFractionDigits: 2})}`, 196, finalY + 10, { align: "right" });
-    
     doc.text(`Impuesto (15%):`, 165, finalY + 16, { align: "right" }); 
     doc.text(`$ ${impuesto.toLocaleString('en-US', {minimumFractionDigits: 2})}`, 196, finalY + 16, { align: "right" });
 
-    doc.setFontSize(12); // Redujimos de 13 a 12
+    doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(15, 23, 42);
-    
     doc.text(`TOTAL A INVERTIR:`, 165, finalY + 24, { align: "right" }); 
     doc.text(`$ ${totalFinal.toLocaleString('en-US', {minimumFractionDigits: 2})}`, 196, finalY + 24, { align: "right" });
 
-    // 5. TÉRMINOS Y CONDICIONES
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text("Términos y Condiciones:", 14, finalY + 40);
@@ -192,36 +224,75 @@ function App() {
   };
 
   // ==========================================
-  // RENDERIZADO VISUAL CON TAILWIND CSS
+  // RENDERIZADO VISUAL
   // ==========================================
 
   if (!token) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 font-sans">
         <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm border border-gray-200">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Ingresar al SaaS</h2>
-          <form onSubmit={manejarLogin} className="flex flex-col gap-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Usuario:</label>
-              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña:</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" required />
-            </div>
-            {errorLogin && <p className="text-red-500 text-sm font-medium">{errorLogin}</p>}
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-md">
-              Entrar al Panel
-            </button>
-          </form>
+          
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Atom<span className="text-blue-600">SaaS</span></h2>
+          <p className="text-center text-gray-500 mb-6 text-sm">
+            {vistaRegistro ? 'Crea tu cuenta de agencia' : 'Ingresa a tu panel de control'}
+          </p>
+
+          {/* VISTA DE REGISTRO */}
+          {vistaRegistro ? (
+            <form onSubmit={manejarRegistro} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Nombre de Usuario:</label>
+                <input type="text" value={regUsername} onChange={(e) => setRegUsername(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Correo Electrónico:</label>
+                <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Contraseña:</label>
+                <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Nombre de tu Agencia/Empresa:</label>
+                <input type="text" value={regCompania} onChange={(e) => setRegCompania(e.target.value)} placeholder="Ej: Industrias Stark" className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+              </div>
+              {errorRegistro && <p className="text-red-500 text-xs font-medium">{errorRegistro}</p>}
+              <button type="submit" className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-md">
+                Crear mi Agencia
+              </button>
+              <button type="button" onClick={() => setVistaRegistro(false)} className="text-sm text-blue-600 hover:underline text-center mt-2">
+                ¿Ya tienes cuenta? Inicia sesión aquí
+              </button>
+            </form>
+          ) : (
+            
+          /* VISTA DE LOGIN (ORIGINAL) */
+            <form onSubmit={manejarLogin} className="flex flex-col gap-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Usuario:</label>
+                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña:</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" required />
+              </div>
+              {errorLogin && <p className="text-red-500 text-sm font-medium">{errorLogin}</p>}
+              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-md">
+                Entrar al Panel
+              </button>
+              <button type="button" onClick={() => setVistaRegistro(true)} className="text-sm text-blue-600 hover:underline text-center mt-2">
+                ¿Aún no tienes cuenta? Regístrate aquí
+              </button>
+            </form>
+          )}
         </div>
       </div>
     );
   }
 
+  // ... EL RESTO DEL CÓDIGO (NAVBAR, CLIENTES, COTIZACIONES) SE MANTIENE EXACTAMENTE IGUAL ABAJO
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-10">
-      {/* NAVBAR */}
       <nav className="bg-white shadow-sm border-b border-gray-200 px-8 py-4 mb-8 flex justify-between items-center sticky top-0 z-10">
         <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Atom<span className="text-blue-600">SaaS</span></h1>
         <button onClick={cerrarSesion} className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 px-4 border border-red-200 rounded-lg transition-colors">
@@ -252,7 +323,7 @@ function App() {
         {/* SECCIÓN 2: GENERADOR DE COTIZACIONES */}
         <section className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl shadow-sm border border-blue-100">
           <h2 className="text-xl font-extrabold text-blue-900 mb-6 flex items-center gap-2">
-            Generador de Cotizaciones
+            ✨ Generador de Cotizaciones
           </h2>
           
           <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-blue-100">
@@ -325,7 +396,7 @@ function App() {
         {/* SECCIÓN 3: HISTORIAL DE COTIZACIONES */}
         <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            Mis Cotizaciones Guardadas
+            🗂️ Mis Cotizaciones Guardadas
           </h2>
           
           {cargando ? (
@@ -359,7 +430,7 @@ function App() {
                       </td>
                       <td className="p-4">
                         <button onClick={() => generarPDF(cot)} className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 font-medium py-1.5 px-4 rounded shadow-sm transition-colors text-sm flex items-center gap-2">
-                          Descargar PDF
+                          📄 Descargar PDF
                         </button>
                       </td>
                     </tr>
