@@ -26,7 +26,7 @@ function App() {
   const manejarLogin = async (e) => {
     e.preventDefault();
     try {
-      const respuesta = await fetch('http://127.0.0.1:8000/api/token/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+      const respuesta = await fetch('https://atomsaas-api.onrender.com/api/token/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
       if (respuesta.ok) {
         const datos = await respuesta.json(); setToken(datos.access); localStorage.setItem('token', datos.access); setErrorLogin('');
       } else { setErrorLogin('Usuario o contraseña incorrectos.'); }
@@ -38,15 +38,15 @@ function App() {
   useEffect(() => {
     if (token) {
       setCargando(true);
-      fetch('http://127.0.0.1:8000/api/clientes/', { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch('https://atomsaas-api.onrender.com/api/clientes/', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => { if (!res.ok) throw new Error("Token"); return res.json(); })
         .then(datos => setClientes(datos)).catch(() => cerrarSesion());
 
-      fetch('http://127.0.0.1:8000/api/servicios/', { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch('https://atomsaas-api.onrender.com/api/servicios/', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => { if (!res.ok) throw new Error("Token"); return res.json(); })
         .then(datos => setServicios(datos)).catch(() => cerrarSesion());
 
-      fetch('http://127.0.0.1:8000/api/cotizaciones/', { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch('https://atomsaas-api.onrender.com/api/cotizaciones/', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => { if (!res.ok) throw new Error("Token"); return res.json(); })
         .then(datos => { setCotizacionesGuardadas(datos); setCargando(false); }).catch(() => cerrarSesion());
     }
@@ -55,7 +55,7 @@ function App() {
   const crearCliente = async (e) => {
     e.preventDefault(); setCreando(true);
     try {
-      const respuesta = await fetch('http://127.0.0.1:8000/api/clientes/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ nombre_empresa: nuevoNombre, email: nuevoEmail }) });
+      const respuesta = await fetch('https://atomsaas-api.onrender.com/api/clientes/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ nombre_empresa: nuevoNombre, email: nuevoEmail }) });
       if (respuesta.ok) { const clienteCreado = await respuesta.json(); setClientes([...clientes, clienteCreado]); setNuevoNombre(''); setNuevoEmail(''); }
     } catch (error) { console.error(error); } finally { setCreando(false); }
   };
@@ -75,7 +75,7 @@ function App() {
     setGuardandoCotizacion(true);
     const paqueteDatos = { cliente: parseInt(clienteSeleccionado), detalles: itemsCotizacion.map(item => ({ servicio: item.servicio_id, cantidad: item.cantidad, precio_unitario: item.precio })) };
     try {
-      const respuesta = await fetch('http://127.0.0.1:8000/api/cotizaciones/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(paqueteDatos) });
+      const respuesta = await fetch('https://atomsaas-api.onrender.com/api/cotizaciones/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(paqueteDatos) });
       if (respuesta.ok) {
         const cotizacionGuardada = await respuesta.json();
         alert(`¡Éxito! Cotización guardada.`);
