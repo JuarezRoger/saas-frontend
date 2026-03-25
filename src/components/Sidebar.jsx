@@ -1,67 +1,92 @@
 import React from 'react';
 
-export default function Sidebar({
-  vistaActiva,
-  navegarA,
-  menuExpandido,
-  menuMovilAbierto,
-  setMenuMovilAbierto,
-  configuracion,
-  cerrarSesion
-}) {
+export default function Sidebar({ vistaActiva, navegarA, menuExpandido, menuMovilAbierto, setMenuMovilAbierto, configuracion, cerrarSesion }) {
+  
+  const itemsMenu = [
+    { id: 'dashboard', icono: '📊', texto: 'Dashboard' },
+    { id: 'cotizador', icono: '📄', texto: 'Crear Cotización' },
+    { id: 'directorio', icono: '📁', texto: 'Directorio' },
+    { id: 'configuracion', icono: '⚙️', texto: 'Configuración' }
+  ];
+
   return (
     <>
-      {/* OVERLAY PARA MÓVILES (Oscurece el fondo cuando el menú está abierto) */}
+      {/* FONDO OSCURO PARA MÓVILES (Fondo difuminado cuando el menú se abre) */}
       {menuMovilAbierto && (
-        <div className="fixed inset-0 bg-gray-900/50 z-40 md:hidden" onClick={() => setMenuMovilAbierto(false)}></div>
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          onClick={() => setMenuMovilAbierto(false)}
+        ></div>
       )}
 
-      {/* SIDEBAR (RETRÁCTIL EN DESKTOP, DESLIZABLE EN MÓVIL) */}
-      <aside className={`fixed md:relative inset-y-0 left-0 z-50 bg-gray-900 text-white flex flex-col shadow-xl transition-all duration-300 ease-in-out 
-        ${menuMovilAbierto ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} 
-        ${menuExpandido ? 'w-64' : 'w-20'}`}
-      >
-        {/* LOGO AREA */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xl flex-shrink-0">A</div>
-            {menuExpandido && <h1 className="text-xl font-extrabold tracking-tight whitespace-nowrap">Atom<span className="text-blue-400">SaaS</span></h1>}
-          </div>
-        </div>
+      {/* CONTENEDOR DEL SIDEBAR */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-50 
+        bg-atomPanel backdrop-blur-xl border-r border-gray-800
+        transform transition-all duration-300 ease-in-out flex flex-col
+        ${menuMovilAbierto ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        ${menuExpandido ? 'w-64' : 'w-20'}
+      `}>
         
-        {/* LINKS */}
-        <nav className="flex-1 py-6 space-y-2 overflow-y-auto overflow-x-hidden px-3">
-          <button onClick={() => navegarA('dashboard')} className={`w-full flex items-center ${menuExpandido ? 'justify-start px-4' : 'justify-center'} py-3 rounded-lg text-sm font-medium transition-all ${vistaActiva === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`} title="Dashboard">
-            <span className="text-xl">📊</span> {menuExpandido && <span className="ml-3 whitespace-nowrap">Dashboard</span>}
-          </button>
-          <button onClick={() => navegarA('cotizador')} className={`w-full flex items-center ${menuExpandido ? 'justify-start px-4' : 'justify-center'} py-3 rounded-lg text-sm font-medium transition-all ${vistaActiva === 'cotizador' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`} title="Crear Cotización">
-            <span className="text-xl">📝</span> {menuExpandido && <span className="ml-3 whitespace-nowrap">Crear Cotización</span>}
-          </button>
-          <button onClick={() => navegarA('directorio')} className={`w-full flex items-center ${menuExpandido ? 'justify-start px-4' : 'justify-center'} py-3 rounded-lg text-sm font-medium transition-all ${vistaActiva === 'directorio' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`} title="Directorio">
-            <span className="text-xl">📁</span> {menuExpandido && <span className="ml-3 whitespace-nowrap">Directorio</span>}
-          </button>
-          <div className="pt-6">
-            <button onClick={() => navegarA('configuracion')} className={`w-full flex items-center ${menuExpandido ? 'justify-start px-4' : 'justify-center'} py-3 rounded-lg text-sm font-medium transition-all ${vistaActiva === 'configuracion' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`} title="Configuración">
-              <span className="text-xl">⚙️</span> {menuExpandido && <span className="ml-3 whitespace-nowrap">Configuración</span>}
-            </button>
+        {/* LOGO Y NOMBRE DE LA AGENCIA */}
+        <div className="h-16 flex items-center justify-center border-b border-gray-800 flex-shrink-0 px-4">
+          <div className="bg-atomAcento text-atomFondo font-black w-18 h-18 rounded flex items-center justify-center text-xl shadow-neon-blue">
+            <img src="/image.png" alt="SaaSAtom" className="h-10 object-contain drop-shadow-[0_0_15px_rgba(0,242,254,0.4)]" />
           </div>
+          {menuExpandido && (
+            <span className="ml-3 font-titulos font-bold text-atomTitulo text-lg whitespace-nowrap overflow-hidden">
+              Atom<span className="text-atomAcento">System</span>
+            </span>
+          )}
+        </div>
+
+        {/* ENLACES DEL MENÚ */}
+        <nav className="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
+          {itemsMenu.map((item) => {
+            const activo = vistaActiva === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => navegarA(item.id)}
+                className={`
+                  flex items-center w-full p-3 rounded-xl transition-all duration-200
+                  ${activo 
+                    ? 'bg-atomAcento/10 text-atomAcento border border-atomAcento/30 shadow-[inset_4px_0_0_0_#00f2fe]' 
+                    : 'text-atomTexto hover:bg-atomFondo/50 hover:text-atomTitulo border border-transparent'}
+                `}
+                title={!menuExpandido ? item.texto : ''}
+              >
+                <span className="text-xl flex-shrink-0 w-6 text-center">{item.icono}</span>
+                {menuExpandido && <span className="ml-4 font-medium text-sm whitespace-nowrap">{item.texto}</span>}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* USUARIO AREA */}
-        <div className="p-4 border-t border-gray-800 flex flex-col items-center gap-4">
-          <div className={`flex items-center gap-3 overflow-hidden ${!menuExpandido && 'justify-center'}`}>
-            <div className="w-10 h-10 rounded-full border-2 border-gray-600 flex-shrink-0 bg-white overflow-hidden">
-               <img src={configuracion.logoUrl || '/logo.png'} alt="logo" className="w-full h-full object-contain"/>
+        {/* ÁREA DE USUARIO Y CERRAR SESIÓN */}
+        <div className="p-4 border-t border-gray-800">
+          <div className="flex items-center mb-4">
+            <div className="w-8 h-8 rounded-full bg-atomFondo border border-gray-700 overflow-hidden flex-shrink-0">
+              <img src={configuracion.logoUrl || '/logo.png'} alt="Logo" className="w-full h-full object-cover" />
             </div>
             {menuExpandido && (
-              <div className="whitespace-nowrap">
-                <p className="text-xs text-gray-400">Agencia</p>
-                <p className="text-sm font-bold truncate max-w-[120px]">{configuracion.nombre}</p>
+              <div className="ml-3 overflow-hidden">
+                <p className="text-xs text-atomTexto truncate">Agencia</p>
+                <p className="text-sm font-bold text-atomTitulo truncate">{configuracion.nombre}</p>
               </div>
             )}
           </div>
-          <button onClick={cerrarSesion} className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 py-2 rounded-lg text-sm transition-colors" title="Cerrar Sesión">
-            <span className="text-lg">🚪</span> {menuExpandido && <span className="font-bold whitespace-nowrap">Salir</span>}
+          
+          <button 
+            onClick={cerrarSesion}
+            className={`
+              w-full flex items-center justify-center gap-2 p-2 rounded-xl
+              bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 hover:border-red-500
+              transition-all duration-200 text-sm font-bold
+            `}
+          >
+            <span className="text-lg">🚪</span>
+            {menuExpandido && <span>Salir</span>}
           </button>
         </div>
       </aside>

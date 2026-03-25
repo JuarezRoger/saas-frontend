@@ -289,29 +289,34 @@ useEffect(() => {
   const navegarA = (vista) => { setVistaActiva(vista); setMenuMovilAbierto(false); };
 
   // ==========================================
-  // PANTALLA LOGIN
+  // PANTALLA LOGIN (MODO DARK PREMIUM)
   // ==========================================
   if (!token) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="flex items-center justify-center min-h-screen bg-atomFondo font-sans p-4">
         <Toaster position="top-right" />
-        <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
-          <h2 className="text-2xl font-bold text-center mb-6">Atom<span className="text-blue-600">SaaS</span></h2>
+        <div className="bg-atomPanel backdrop-blur-xl p-8 rounded-2xl shadow-neon-card border border-atomAcento/20 w-full max-w-sm animate-fade-in">
+          
+          {/* LOGO EN EL LOGIN */}
+          <div className="flex justify-center mb-8">
+            <img src="/logo.png" alt="SaaSAtom" className="h-16 object-contain drop-shadow-[0_0_15px_rgba(0,242,254,0.4)]" />
+          </div>
+
           {vistaRegistro ? (
             <form onSubmit={manejarRegistro} className="flex flex-col gap-4">
-              <input type="text" value={regUsername} onChange={(e) => setRegUsername(e.target.value)} placeholder="Usuario" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
-              <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} placeholder="Correo" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
-              <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} placeholder="Contraseña" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
-              <input type="text" value={regCompania} onChange={(e) => setRegCompania(e.target.value)} placeholder="Tu Agencia" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
-              <button type="submit" className="w-full bg-green-600 text-white font-bold py-2.5 rounded-lg shadow-md">Crear Agencia</button>
-              <button type="button" onClick={() => setVistaRegistro(false)} className="text-sm text-blue-600 hover:underline">¿Ya tienes cuenta? Inicia sesión</button>
+              <input type="text" value={regUsername} onChange={(e) => setRegUsername(e.target.value)} placeholder="Usuario" className="w-full p-3 rounded-xl outline-none bg-atomFondo border border-gray-700 text-white focus:border-atomAcento focus:ring-1 focus:ring-atomAcento transition-all" required />
+              <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} placeholder="Correo" className="w-full p-3 rounded-xl outline-none bg-atomFondo border border-gray-700 text-white focus:border-atomAcento focus:ring-1 focus:ring-atomAcento transition-all" required />
+              <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} placeholder="Contraseña" className="w-full p-3 rounded-xl outline-none bg-atomFondo border border-gray-700 text-white focus:border-atomAcento focus:ring-1 focus:ring-atomAcento transition-all" required />
+              <input type="text" value={regCompania} onChange={(e) => setRegCompania(e.target.value)} placeholder="Nombre de tu Agencia" className="w-full p-3 rounded-xl outline-none bg-atomFondo border border-gray-700 text-white focus:border-atomAcento focus:ring-1 focus:ring-atomAcento transition-all" required />
+              <button type="submit" className="w-full mt-2 bg-atomAcento hover:bg-atomAcentoHover text-atomFondo font-bold py-3 rounded-xl shadow-neon-blue transition-all">Crear Agencia</button>
+              <button type="button" onClick={() => setVistaRegistro(false)} className="text-sm text-atomTexto hover:text-atomAcento transition-colors">¿Ya tienes cuenta? Inicia sesión</button>
             </form>
           ) : (
             <form onSubmit={manejarLogin} className="flex flex-col gap-4">
-              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuario" className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña" className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
-              <button type="submit" className="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg shadow-md">Entrar</button>
-              <button type="button" onClick={() => setVistaRegistro(true)} className="text-sm text-blue-600 hover:underline">¿No tienes cuenta? Regístrate</button>
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuario" className="w-full p-3 rounded-xl outline-none bg-atomFondo border border-gray-700 text-white focus:border-atomAcento focus:ring-1 focus:ring-atomAcento transition-all" required />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña" className="w-full p-3 rounded-xl outline-none bg-atomFondo border border-gray-700 text-white focus:border-atomAcento focus:ring-1 focus:ring-atomAcento transition-all" required />
+              <button type="submit" className="w-full mt-2 bg-atomAcento hover:bg-atomAcentoHover text-atomFondo font-bold py-3 rounded-xl shadow-neon-blue transition-all">Entrar a SaaSAtom</button>
+              <button type="button" onClick={() => setVistaRegistro(true)} className="text-sm text-atomTexto hover:text-atomAcento transition-colors">¿No tienes cuenta? Regístrate</button>
             </form>
           )}
         </div>
@@ -323,9 +328,10 @@ useEffect(() => {
   // PANEL PRINCIPAL (RESPONSIVO Y RETRÁCTIL)
   // ==========================================
   return (
-    <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
+    // 1. Cambiamos el fondo principal a atomFondo
+    <div className="flex h-screen bg-atomFondo font-sans overflow-hidden">
       <Toaster position="top-right" /> 
-      {/* NUESTRO NUEVO COMPONENTE SIDEBAR LIMPIO */}
+      
       <Sidebar 
         vistaActiva={vistaActiva} 
         navegarA={navegarA} 
@@ -336,26 +342,25 @@ useEffect(() => {
         cerrarSesion={cerrarSesion} 
       />
       
-      
-      {/* ÁREA DE CONTENIDO PRINCIPAL */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50/50">
+      {/* 2. Quitamos el bg-gray-50/50 y dejamos que herede el fondo oscuro */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         
-        {/* HEADER SUPERIOR (Boton Hamburger y Controles) */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 z-10 flex-shrink-0">
+        {/* HEADER SUPERIOR: Ahora es oscuro, semitransparente y con borde sutil */}
+        <header className="h-16 bg-atomPanel/50 backdrop-blur-md border-b border-gray-800 flex items-center justify-between px-4 sm:px-6 z-10 flex-shrink-0">
           <div className="flex items-center gap-4">
-            {/* Botón Hamburger (Móvil) */}
-            <button onClick={() => setMenuMovilAbierto(true)} className="md:hidden text-gray-600 hover:text-gray-900 text-2xl p-1">
+            <button onClick={() => setMenuMovilAbierto(true)} className="md:hidden text-atomTexto hover:text-atomAcento text-2xl p-1">
               ☰
             </button>
-            {/* Botón Retráctil (Escritorio) */}
-            <button onClick={() => setMenuExpandido(!menuExpandido)} className="hidden md:block text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Expandir/Contraer Menú">
+            <button onClick={() => setMenuExpandido(!menuExpandido)} className="hidden md:block text-atomTexto hover:text-atomAcento p-2 rounded-lg hover:bg-atomFondo transition-colors" title="Expandir/Contraer Menú">
               {menuExpandido ? '◀' : '▶'}
             </button>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800 capitalize hidden sm:block">{vistaActiva}</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-atomTitulo font-titulos capitalize hidden sm:block">
+              {vistaActiva}
+            </h2>
           </div>
         </header>
 
-        {/* CONTENIDO DESLIZABLE */}
+        {/* 3. El contenedor principal deslizable */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-8">
           <div className="max-w-6xl mx-auto">
             

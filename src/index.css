@@ -1,3 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply bg-atomFondo text-atomTexto font-sans antialiased overflow-x-hidden;
+  }
+  h1, h2, h3, h4, .font-titulos {
+    @apply font-títulos text-atomTitulo tracking-tight;
+  }
+}
+
+/* 🌟 EFECTO DE ANIMACIÓN DE ENTRADA SUAVE */
+.animate-fade-in { animation: fadeIn 0.5s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Estilo para los inputs por defecto dentro del tema oscuro */
+input, select, textarea { @apply bg-atomFondo/50 border-gray-700 text-atomTexto placeholder:text-gray-600 focus:ring-atomAcento focus:border-atomAcento; }
+
+/* Scrollbar personalizado tipo tech */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { bg: #0a0f1e; }
+::-webkit-scrollbar-thumb { @apply bg-atomPanel rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-atomAcentoHover/30; }
